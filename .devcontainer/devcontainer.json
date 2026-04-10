@@ -1,0 +1,9 @@
+{
+  "name": "validation-data-adjust-tool",
+  "image": "mcr.microsoft.com/devcontainers/java:21",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    }
+  }
+}
