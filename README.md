@@ -1,1 +1,1 @@
-# aoshima-yuki-validation-data-adjust-tool
+# validation-data-adjust-tool
