@@ -19,7 +19,9 @@ cp -r data-adjust-tool/api nifi-2.0.0/python/
 cp -r data-adjust-tool/extensions nifi-2.0.0/python/
 
 echo "=== Set Python ==="
-sed -i 's|^nifi.python.command=.*|nifi.python.command=python3|' nifi-2.0.0/conf/nifi.properties
+echo "nifi.python.command=python3" >> nifi-2.0.0/conf/nifi.properties
+echo "nifi.python.extensions.directory=./python/extensions" >> nifi-2.0.0/conf/nifi.properties
+echo "nifi.python.framework.directory=./python/framework" >> nifi-2.0.0/conf/nifi.properties
 
 echo "=== Set NiFi login user ==="
 cd nifi-2.0.0/bin
