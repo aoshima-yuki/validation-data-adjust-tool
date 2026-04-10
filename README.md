@@ -31,9 +31,7 @@
 ローカルから NiFi をアップロード
 
 ```
-
 nifi-2.0.0-bin.zip
-
 ````
 
 ---
@@ -118,100 +116,6 @@ NiFi の「Add Processor」画面にて以下が表示されることを確認
 
 * Python は Codespaces の devcontainer により 3.11 を利用
 * システム標準の python3（minimal版）は使用不可
-
----
-
-## 再現手順
-
-### 1. Codespaces を起動
-1. 本リポジトリを開く  
-2. 「Code」→「Codespaces」→「Create codespace on main」
-
-※ devcontainer により以下が自動セットアップされる  
-- Java 21  
-- Python 3.11  
-
----
-
-### 2. NiFi を配置（手動）
-ローカルから以下を Codespaces にアップロード
-
-```
-
-nifi-2.0.0-bin.zip
-
-````
-
----
-
-### 3. セットアップ（コピペ実行）
-
-```bash
-unzip nifi-2.0.0-bin.zip
-
-git clone https://github.com/ODS-IS-IMDX/data-adjust-tool.git
-
-cp -r data-adjust-tool/api nifi-2.0.0/python/
-cp -r data-adjust-tool/extensions nifi-2.0.0/python/
-
-sed -i 's|^nifi.python.command=.*|nifi.python.command=python3|' nifi-2.0.0/conf/nifi.properties
-````
-
----
-
-### 4. NiFi 起動
-
-```bash
-cd nifi-2.0.0/bin
-./nifi.sh start
-```
-
----
-
-### 5. ポート開放
-
-Codespaces の「PORTS」タブで
-
-```
-8443
-```
-
-を追加
-
----
-
-### 6. ユーザー設定
-
-```bash
-./nifi.sh set-single-user-credentials admin Password123!
-./nifi.sh stop
-./nifi.sh start
-```
-
----
-
-### 7. NiFi にアクセス
-
-```
-https://<codespace-url>-8443.app.github.dev/nifi
-```
-
-ログイン情報：
-
-* Username: admin
-* Password: Password123!
-
----
-
-### 8. 動作確認
-
-NiFi 画面で右クリック → Add Processor
-
-以下が表示されることを確認：
-
-* ConvertLinkCSVToSpatialID
-* GenerateCylindricalSpatialID
-
 
 ---
 
