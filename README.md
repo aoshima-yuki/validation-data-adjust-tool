@@ -119,5 +119,60 @@ NiFi の「Add Processor」画面にて以下が表示されることを確認
 
 ---
 
+## 実行手順
+---
+
+### 1. Codespaces を起動
+- 「Code」→「Codespaces」→「Create codespace on main」
+
+---
+
+### 2. セットアップ実行
+
+```bash
+bash setup.sh
+````
+
+---
+
+### 3. ポート開放
+
+Codespaces の「PORTS」タブで
+
+```
+8443
+```
+
+を開く
+
+---
+
+### 4. NiFi にアクセス
+
+```
+https://<codespace-url>-8443.app.github.dev/nifi
+```
+
+---
+
+### 5. ログイン
+
+* Username: admin
+* Password: Password123!
+
+---
+
+### 6. 動作確認
+
+NiFi画面で右クリック → Add Processor
+
+以下が表示されることを確認：
+
+* ConvertLinkCSVToSpatialID
+* GenerateCylindricalSpatialID
+
+---
+
+
 
 
