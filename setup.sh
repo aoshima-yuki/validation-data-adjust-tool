@@ -2,8 +2,11 @@
 
 set -e
 
-echo "=== Download NiFi ==="
-curl -L -O https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-bin.zip
+if [ ! -f nifi-2.0.0-bin.zip ]; then
+  echo "ERROR: nifi-2.0.0-bin.zip not found"
+  echo "Please upload it manually to the repository root in Codespaces."
+  exit 1
+fi
 
 echo "=== Unzip NiFi ==="
 unzip -q nifi-2.0.0-bin.zip
@@ -18,9 +21,14 @@ cp -r data-adjust-tool/extensions nifi-2.0.0/python/
 echo "=== Set Python ==="
 sed -i 's|^nifi.python.command=.*|nifi.python.command=python3|' nifi-2.0.0/conf/nifi.properties
 
-echo "=== Start NiFi ==="
+echo "=== Set NiFi login user ==="
 cd nifi-2.0.0/bin
+./nifi.sh stop || true
+./nifi.sh set-single-user-credentials admin Password123!
+
+echo "=== Start NiFi ==="
 ./nifi.sh start
 
 echo "=== Done ==="
 echo "Open PORT 8443 in Codespaces"
+echo "Login with: admin / Password123!"
