@@ -119,60 +119,70 @@ NiFi の「Add Processor」画面にて以下が表示されることを確認
 
 ---
 
-## 検証環境立ち上げ手順
----
+## 検証環境の立ち上げ手順
 
 ### 1. Codespaces を起動
-- 「Code」→「Codespaces」→「Create codespace on main」
+本リポジトリを開き、`Code` → `Codespaces` → `Create codespace on main` を選択する。
 
----
+### 2. NiFi を配置
+ローカルに保存した以下のファイルを Codespaces のリポジトリ直下にアップロードする。
 
-### 2. セットアップ実行
-
-```bash
-bash setup.sh
+```text
+nifi-2.0.0-bin.zip
 ````
 
----
+### 3. セットアップスクリプトを実行
 
-### 3. ポート開放
+必要に応じて既存フォルダを削除したうえで、以下を実行する。
 
-Codespaces の「PORTS」タブで
-
+```bash
+rm -rf nifi-2.0.0 data-adjust-tool
+bash setup.sh
 ```
-8443
-```
 
-を開く
+### 4. ポートを開く
 
----
+Codespaces の `PORTS` タブで `8443` を開く。
 
-### 4. NiFi にアクセス
+### 5. NiFi にアクセス
 
-```
+以下のURLにアクセスする。
+
+```text
 https://<codespace-url>-8443.app.github.dev/nifi
 ```
 
----
+### 6. ログイン
 
-### 5. ログイン
+以下でログインする。
 
-* Username: admin
-* Password: Password123!
+* Username: `admin`
+* Password: `Password123!`
 
----
+### 7. 動作確認
 
-### 6. 動作確認
+NiFi 画面で右クリックし、`Add Processor` を開く。
+以下の Processor が表示されることを確認する。
 
-NiFi画面で右クリック → Add Processor
+* `ConvertLinkCSVToSpatialID`
+* `GenerateCylindricalSpatialID`
 
-以下が表示されることを確認：
+## setup.sh で実施する内容
 
-* ConvertLinkCSVToSpatialID
-* GenerateCylindricalSpatialID
+`setup.sh` では以下を自動実行する。
 
----
+* NiFi の展開
+* `data-adjust-tool` の clone
+* `api` / `extensions` の NiFi への配置
+* `nifi.python.command=python3` の設定
+* NiFi ログインユーザーの設定
+* NiFi の起動
 
+## 注意事項
 
+* `nifi-2.0.0-bin.zip` は GitHub には保存していないため、Codespaces 起動後に手動アップロードが必要です。  
+  本来はスクリプト内でダウンロードする構成も検討しましたが、Codespaces 環境から Apache 配布サーバ（archive.apache.org 等）への接続が不安定となる場合があり、安定した再現性を確保するため本方式としています。  
+  そのため、事前にローカル環境等で `nifi-2.0.0-bin.zip` を取得し、Codespaces にアップロードして利用してください。
+* 既存の `nifi-2.0.0` や `data-adjust-tool` が残っていると再実行時に失敗することがあるため、必要に応じて削除してから `bash setup.sh` を実行する。
 
 
