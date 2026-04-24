@@ -1,5 +1,8 @@
+---
 
-# Memo
+# README
+
+---
 
 ## 概要
 
@@ -18,14 +21,12 @@
 
 **GitHub Codespaces** は、クラウド上で動作する開発環境（ブラウザで利用可能な仮想マシン）です。
 
-主な特徴は以下の通りです。
+主な特徴：
 
-* ブラウザだけで開発環境を起動可能（ローカル環境構築不要）
-* リポジトリごとに定義された環境を再現可能
-* VS Code ベースの UI で操作可能
-* ポート公開により Web アプリ（NiFi 等）にアクセス可能
-
-本手順では、この Codespaces 上に NiFi 環境を構築し、ブラウザ経由で動作確認を行います。
+* ブラウザだけで開発環境を起動可能
+* 環境をリポジトリ単位で再現可能
+* VS Code UI
+* ポート公開でWebアプリ利用可能
 
 ---
 
@@ -38,66 +39,25 @@
 
 ---
 
-## 検証環境構築手順（参考）
-
-以下は手動で構築する場合の手順です。
-
-### 1. NiFi を配置
-
-```bash
-unzip nifi-2.0.0-bin.zip
-```
-
-### 2. data-adjust-tool を取得
-
-```bash
-git clone https://github.com/ODS-IS-IMDX/data-adjust-tool.git
-```
-
-### 3. NiFi に配置
-
-```bash
-cp -r data-adjust-tool/api nifi-2.0.0/python/
-cp -r data-adjust-tool/extensions nifi-2.0.0/python/
-```
-
-### 4. Python 設定
-
-```bash
-echo "nifi.python.command=python3" >> nifi-2.0.0/conf/nifi.properties
-echo "nifi.python.extensions.directory=./python/extensions" >> nifi-2.0.0/conf/nifi.properties
-echo "nifi.python.framework.directory=./python/framework" >> nifi-2.0.0/conf/nifi.properties
-```
-
-### 5. NiFi 起動
-
-```bash
-cd nifi-2.0.0/bin
-./nifi.sh start
-```
-
----
-
-## 検証環境の立ち上げ手順
+## 検証環境構築手順
 
 ### 1. Codespaces を起動
 
-本リポジトリを開き、
-`Code` → `Codespaces` → `Create codespace on main` を選択する。
+`Code → Codespaces → Create codespace on main`
 
 ---
 
 ### 2. NiFi を配置
 
-以下のファイルを Codespaces のリポジトリ直下にアップロードする。
-
 ```
 nifi-2.0.0-bin.zip
 ```
 
+をアップロード
+
 ---
 
-### 3. セットアップスクリプトを実行
+### 3. セットアップ
 
 ```bash
 rm -rf nifi-2.0.0 data-adjust-tool
@@ -108,7 +68,7 @@ bash setup.sh
 
 ### 4. ポートを開く
 
-Codespaces の `PORTS` タブで `8443` を開く。
+`PORTS` タブで `8443` を開く
 
 ---
 
@@ -122,54 +82,172 @@ https://<codespace-url>-8443.app.github.dev/nifi
 
 ### 6. ログイン
 
-* Username: `admin`
-* Password: `Password123!`
+* Username: admin
+* Password: Password123!
 
 ---
 
-### 7. 動作確認
+### 7. Processor確認
 
-NiFi 画面で右クリックし、`Add Processor` を開く。
-検索欄に `SpatialID` と入力し、Spatial ID 関連の Processor が表示されることを確認する。
-
-例：
-
-* `GenerateCylindricalSpatialID`
-* `GenerateSpatialID`
-* `ConvertLinkCSVToSpatialIDCenterPoint`
+`Add Processor` → `SpatialID` 検索
 
 ---
 
-## setup.sh で実施する内容
+## setup.sh の内容
 
-`setup.sh` では以下を自動実行する。
-
-* NiFi の展開
-* `data-adjust-tool` の clone
-* `api` / `extensions` の NiFi への配置
-* `nifi.python.command=python3` の設定
-* `nifi.python.extensions.directory=./python/extensions` の設定
-* `nifi.python.framework.directory=./python/framework` の設定
-* NiFi ログインユーザーの設定
-* NiFi の起動
+* NiFi展開
+* data-adjust-tool clone
+* python/extensions配置
+* nifi.properties設定
+* NiFi起動
 
 ---
 
-## 注意事項
+# ⚠️ 実行時の注意事項（重要）
 
-* `nifi-2.0.0-bin.zip` は GitHub リポジトリには含めていません
-  ファイルサイズが大きく、通常の Git 管理に適さないためです。
+---
 
-* 以下より取得してください
-  [https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-bin.zip](https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-bin.zip)
+## 1. CodespacesのNiFiアクセス問題
 
-* Codespaces 起動後にアップロードして利用してください
+Codespacesでは認証ヘッダが自動付与され、NiFiでエラーになる。
 
-* スクリプト内での自動ダウンロードも検討しましたが、
-  Codespaces 環境から Apache 配布サーバへの接続が不安定となる場合があるため採用していません
+```
+Unauthorized error="invalid_token"
+```
 
-* 既存の `nifi-2.0.0` や `data-adjust-tool` が残っていると失敗することがあります
-  必要に応じて削除してから `bash setup.sh` を実行してください
+### 対処：nginxプロキシ
+
+```bash
+docker network create nifi-net
+
+docker run -d --name nifi-http --network nifi-net \
+  ghcr.io/aoshima-yuki/validation-data-adjust-tool-container:latest
+
+cat > nginx.conf <<'EOF'
+events {}
+http {
+  server {
+    listen 18080;
+    location / {
+      proxy_pass http://nifi-http:8080;
+      proxy_set_header Authorization "";
+    }
+  }
+}
+EOF
+
+docker run -d --name nifi-proxy --network nifi-net \
+  -p 18080:18080 \
+  -v "$PWD/nginx.conf:/etc/nginx/nginx.conf:ro" \
+  nginx:alpine
+```
+
+アクセス：
+
+```
+https://<codespace-url>-18080.app.github.dev/nifi/
+```
+
+---
+
+## 2. 入力ファイルのパス問題
+
+Codespacesのパスはコンテナから見えない。
+
+### 対処
+
+```bash
+docker exec nifi-http mkdir -p /tmp/input
+
+docker cp /workspaces/.../000276828.zip \
+  nifi-http:/tmp/input/000276828.zip
+```
+
+NiFi設定：
+
+```
+Input Directory: /tmp/input
+```
+
+---
+
+## 3. Flow JSON 読み込み
+
+UIでは不可 → API使用
+
+```bash
+curl -X POST "http://localhost:18080/nifi-api/process-groups/root/process-groups/upload" \
+  -F "groupName=空間ID変換" \
+  -F "positionX=0" \
+  -F "positionY=0" \
+  -F "clientId=manual-upload" \
+  -F "file=@flow.json;type=application/json"
+```
+
+---
+
+## 4. Processorが動かない問題（最重要）
+
+以下エラーが出る：
+
+```
+Missing Processor
+```
+
+### 原因
+
+data-adjust-tool の Python Processor が読み込まれていない
+
+### 影響
+
+* ConvertShapeFileToGeoDataFrame ❌
+* GenerateSpatialID ❌
+* ConvertCRS ❌
+
+👉 **空間ID CSVは出力されない**
+
+---
+
+## 5. 現状の限界
+
+このコンテナでは：
+
+| 機能     | 状態 |
+| ------ | -- |
+| NiFi起動 | OK |
+| Flow読込 | OK |
+| ファイル読込 | OK |
+| 空間ID変換 | ❌  |
+
+---
+
+## 6. 解決方法
+
+### 方法①（推奨）
+
+NiFiにPython extensionsを正しく組み込む
+
+### 方法②
+
+コンテナを再構築
+
+### 方法③
+
+Python単体で処理実行
+
+---
+
+## 7. 本環境の位置付け
+
+👉 **NiFi + data-adjust-tool の動作確認用（未完成）**
+
+---
+
+## 注意
+
+* NiFi本体は軽量ではないため不安定な場合あり
+* flow.json.gzは環境依存あり
+* 本番利用不可
 
 ---
 
